@@ -1,0 +1,13 @@
+# Web application
+Django>=5.1,<5.2
+pypdf>=5.0
+python-docx>=1.1
+
+# Data analysis and ML (used by the AI engine and the analytics notebook)
+pandas
+numpy
+matplotlib
+seaborn
+scikit-learn
+joblib
+streamlit

@@ -1,0 +1,19 @@
+Arjun Sharma
+Software Engineer | Pune | arjun.sharma@example.com
+
+Summary
+Software engineer with 4 years of experience building full stack web applications with the MERN stack.
+
+Skills
+JavaScript, React, Node.js, Express, MongoDB, REST API design, Git, HTML, CSS, Redux, Jest
+
+Experience
+Software Engineer, Brightlabs Technologies (2022 - present)
+- Built React single-page applications and Node.js/Express REST APIs backed by MongoDB.
+- Designed JWT authentication and role-based access for a recruitment platform.
+- Reviewed code and managed releases with Git and GitHub Actions.
+Junior Developer, CodeNest (2021 - 2022)
+- Developed JavaScript components and REST endpoints for an e-commerce website.
+
+Education
+B.Tech in Computer Engineering, Shivaji University, 2021

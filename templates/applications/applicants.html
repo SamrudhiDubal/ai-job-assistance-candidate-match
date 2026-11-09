@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Applicants · {{ job.title }}{% endblock %}
+{% block content %}
+<div class="mb-3">
+  <a href="{% url 'jobs:mine' %}" class="small">&larr; My postings</a>
+  <h1 class="h3 mt-1">{{ job.title }}: ranked applicants</h1>
+  <p class="text-muted mb-0">{{ applications|length }} applicant{{ applications|length|pluralize }}, best match first. Required: {{ job.skills_required }}</p>
+</div>
+{% for app in applications %}
+  {% with d=app.match_details %}
+  <div class="card mb-3"><div class="card-body">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+      <span class="badge score-badge text-bg-{{ app.score_band }}">{{ app.match_score }}%</span>
+      <div class="flex-grow-1">
+        <div class="fw-semibold">#{{ forloop.counter }} {{ app.candidate.name }}</div>
+        <div class="small text-muted">{{ app.candidate.email }}{% if app.candidate.title %} · {{ app.candidate.title }}{% endif %} · applied {{ app.created_at|timesince }} ago</div>
+      </div>
+      <form method="post" action="{% url 'applications:update_status' app.pk %}" class="d-flex gap-2">{% csrf_token %}
+        <select name="status" class="form-select form-select-sm">
+          {% for value, label in statuses %}<option value="{{ value }}" {% if value == app.status %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <button class="btn btn-sm btn-outline-primary">Update</button>
+      </form>
+      <button class="btn btn-sm btn-link" data-bs-toggle="collapse" data-bs-target="#d{{ app.pk }}">AI breakdown</button>
+    </div>
+    <div class="collapse mt-3" id="d{{ app.pk }}"><div class="row g-4">
+      <div class="col-md-5">
+        {% include "partials/signal.html" with label="Skill match" value=d.skill_match_percent %}
+        {% include "partials/signal.html" with label="Resume / description similarity" value=d.text_similarity_percent %}
+        {% include "partials/signal.html" with label="Experience fit" value=d.experience_fit_percent %}
+        <div class="small text-muted mt-2">Years mentioned: {{ d.candidate_years_of_experience|default_if_none:"not stated" }} · Education: {{ d.education_level|default_if_none:"not detected" }}</div>
+      </div>
+      <div class="col-md-7">
+        <div class="small fw-semibold">Matched skills</div>
+        <div class="mb-2">{% for s in d.matched_skills %}<span class="badge text-bg-success skill-chip me-1">{{ s }}</span>{% empty %}<span class="small text-muted">None</span>{% endfor %}</div>
+        <div class="small fw-semibold">Missing skills</div>
+        <div class="mb-2">{% for s in d.missing_skills %}<span class="badge text-bg-danger skill-chip me-1">{{ s }}</span>{% empty %}<span class="small text-muted">None</span>{% endfor %}</div>
+        {% if d.semantic_summary %}<div class="small fw-semibold">AI summary</div><p class="small">{{ d.semantic_summary }}</p>{% endif %}
+        {% if app.cover_letter %}<div class="small fw-semibold">Cover letter</div><p class="small" style="white-space: pre-line">{{ app.cover_letter }}</p>{% endif %}
+        <a href="{% url 'applications:resume' app.pk %}" class="btn btn-sm btn-outline-secondary">Download resume</a>
+      </div>
+    </div></div>
+  </div></div>
+  {% endwith %}
+{% empty %}
+  <div class="card p-4 text-center text-muted">No applications yet.</div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}My postings · JobMatch AI{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">My job postings</h1>
+  <a href="{% url 'jobs:create' %}" class="btn btn-primary">Post a job</a>
+</div>
+<div class="card"><div class="table-responsive"><table class="table align-middle mb-0">
+  <thead><tr><th>Job</th><th>Level</th><th>Status</th><th>Applicants</th><th class="text-end">Actions</th></tr></thead>
+  <tbody>
+  {% for job in jobs %}
+    <tr>
+      <td><a href="{% url 'jobs:detail' job.pk %}">{{ job.title }}</a><div class="small text-muted">{{ job.location }}</div></td>
+      <td>{{ job.get_experience_level_display }}</td>
+      <td><span class="badge text-bg-{% if job.is_open %}success{% else %}secondary{% endif %}">{{ job.get_status_display }}</span></td>
+      <td><a href="{% url 'applications:job_applicants' job.pk %}">{{ job.applicants }} applicant{{ job.applicants|pluralize }}</a></td>
+      <td class="text-end text-nowrap">
+        <a href="{% url 'jobs:edit' job.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+        <form method="post" action="{% url 'jobs:toggle' job.pk %}" class="d-inline">{% csrf_token %}<button class="btn btn-sm btn-outline-warning">{% if job.is_open %}Close{% else %}Reopen{% endif %}</button></form>
+        <form method="post" action="{% url 'jobs:delete' job.pk %}" class="d-inline" onsubmit="return confirm('Delete this job and all its applications?')">{% csrf_token %}<button class="btn btn-sm btn-outline-danger">Delete</button></form>
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="5" class="text-center text-muted p-4">You haven't posted any jobs yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div></div>
+{% endblock %}

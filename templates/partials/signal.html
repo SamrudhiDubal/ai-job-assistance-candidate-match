@@ -1,0 +1,4 @@
+<div class="mb-2">
+  <div class="d-flex justify-content-between small"><span>{{ label }}</span><span>{% if value is None %}Not stated{% else %}{{ value }}%{% endif %}</span></div>
+  <div class="progress signal-bar"><div class="progress-bar" style="width: {{ value|default:0 }}%"></div></div>
+</div>
