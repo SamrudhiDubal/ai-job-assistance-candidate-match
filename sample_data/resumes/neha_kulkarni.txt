@@ -1,0 +1,16 @@
+Neha Kulkarni
+Frontend Developer | Mumbai | neha.k@example.com
+
+Summary
+Frontend developer with 2 years of experience creating responsive user interfaces.
+
+Skills
+JavaScript, React, HTML, CSS, Tailwind CSS, Figma, responsive design
+
+Experience
+Frontend Developer, PixelCraft Studio (2023 - present)
+- Built reusable React components styled with Tailwind CSS.
+- Converted Figma designs into accessible, responsive pages.
+
+Education
+B.Sc in Information Technology, University of Mumbai, 2023

@@ -1,0 +1,7 @@
+body { background: #f6f7fb; }
+.navbar-brand span { color: #0d6efd; }
+.hero { background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%); color: #fff; border-radius: 1rem; }
+.card { border: 0; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.skill-chip { font-size: .8rem; }
+.score-badge { font-size: 1.1rem; min-width: 4rem; }
+.signal-bar { height: .5rem; }

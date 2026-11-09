@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+db.sqlite3
+private_media/
+staticfiles/
+.env
+.DS_Store
+.ipynb_checkpoints/
+# Never commit real candidate data
+data/private/
+*.xlsx

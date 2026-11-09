@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Admin dashboard · JobMatch AI{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">Admin dashboard</h1>
+<ul class="nav nav-tabs mb-3">
+  <li class="nav-item"><a class="nav-link {% if tab == 'overview' %}active{% endif %}" href="?tab=overview">Overview</a></li>
+  <li class="nav-item"><a class="nav-link {% if tab == 'users' %}active{% endif %}" href="?tab=users">Users</a></li>
+  <li class="nav-item"><a class="nav-link {% if tab == 'jobs' %}active{% endif %}" href="?tab=jobs">Jobs</a></li>
+  <li class="nav-item"><a class="nav-link {% if tab == 'applications' %}active{% endif %}" href="?tab=applications">Applications</a></li>
+</ul>
+
+{% if tab == 'users' %}
+  <form class="row g-2 mb-3" method="get"><input type="hidden" name="tab" value="users">
+    <div class="col-md-5"><input name="q" value="{{ q }}" class="form-control" placeholder="Search name or email"></div>
+    <div class="col-md-3"><select name="role" class="form-select"><option value="">All roles</option>{% for v, l in roles %}<option value="{{ v }}" {% if v == role %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+    <div class="col-md-2"><button class="btn btn-primary w-100">Filter</button></div>
+  </form>
+  <div class="card"><div class="table-responsive"><table class="table align-middle mb-0">
+    <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+    <tbody>{% for u in page %}<tr>
+      <td>{{ u.name }}</td><td>{{ u.email }}</td><td>{{ u.get_role_display }}</td>
+      <td><span class="badge text-bg-{% if u.is_active %}success{% else %}secondary{% endif %}">{% if u.is_active %}Active{% else %}Inactive{% endif %}</span></td>
+      <td class="text-end text-nowrap">{% if u != user %}
+        <form method="post" action="{% url 'adminpanel:user_toggle' u.pk %}" class="d-inline">{% csrf_token %}<button class="btn btn-sm btn-outline-warning">{% if u.is_active %}Deactivate{% else %}Activate{% endif %}</button></form>
+        <form method="post" action="{% url 'adminpanel:user_delete' u.pk %}" class="d-inline" onsubmit="return confirm('Delete this user, their jobs and applications?')">{% csrf_token %}<button class="btn btn-sm btn-outline-danger">Delete</button></form>
+      {% endif %}</td></tr>{% endfor %}</tbody>
+  </table></div></div>
+  {% with query="tab=users&q="|add:q|add:"&role="|add:role %}{% include "partials/pagination.html" %}{% endwith %}
+
+{% elif tab == 'jobs' %}
+  <div class="card"><div class="table-responsive"><table class="table align-middle mb-0">
+    <thead><tr><th>Job</th><th>Employer</th><th>Status</th><th>Posted</th><th class="text-end">Actions</th></tr></thead>
+    <tbody>{% for j in page %}<tr>
+      <td><a href="{% url 'jobs:detail' j.pk %}">{{ j.title }}</a><div class="small text-muted">{{ j.company }}</div></td>
+      <td>{{ j.employer.email }}</td>
+      <td><span class="badge text-bg-{% if j.is_open %}success{% else %}secondary{% endif %}">{{ j.get_status_display }}</span></td>
+      <td class="small">{{ j.created_at|date:"d M Y" }}</td>
+      <td class="text-end text-nowrap">
+        <form method="post" action="{% url 'adminpanel:job_toggle' j.pk %}" class="d-inline">{% csrf_token %}<button class="btn btn-sm btn-outline-warning">{% if j.is_open %}Close{% else %}Reopen{% endif %}</button></form>
+        <form method="post" action="{% url 'adminpanel:job_delete' j.pk %}" class="d-inline" onsubmit="return confirm('Delete this job?')">{% csrf_token %}<button class="btn btn-sm btn-outline-danger">Delete</button></form>
+      </td></tr>{% endfor %}</tbody>
+  </table></div></div>
+  {% with query="tab=jobs" %}{% include "partials/pagination.html" %}{% endwith %}
+
+{% elif tab == 'applications' %}
+  <div class="card"><div class="table-responsive"><table class="table align-middle mb-0">
+    <thead><tr><th>Candidate</th><th>Job</th><th>Score</th><th>Status</th><th>Applied</th></tr></thead>
+    <tbody>{% for a in page %}<tr>
+      <td>{{ a.candidate.name }}</td><td>{{ a.job.title }}</td>
+      <td><span class="badge text-bg-{{ a.score_band }}">{{ a.match_score }}%</span></td>
+      <td>{{ a.get_status_display }}</td><td class="small">{{ a.created_at|date:"d M Y" }}</td></tr>{% endfor %}</tbody>
+  </table></div></div>
+  {% with query="tab=applications" %}{% include "partials/pagination.html" %}{% endwith %}
+
+{% else %}
+  <div class="row g-3">{% for label, value in stats.items %}
+    <div class="col-6 col-md-3"><div class="card p-3"><div class="small text-muted">{{ label }}</div><div class="fs-3 fw-bold">{{ value }}</div></div></div>
+  {% endfor %}</div>
+{% endif %}
+{% endblock %}

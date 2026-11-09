@@ -1,0 +1,16 @@
+Rahul Verma
+Java Developer | Bengaluru | rahul.verma@example.com
+
+Summary
+Java developer with 1 year of experience in backend development using Spring Boot.
+
+Skills
+Java, Spring Boot, MySQL, Hibernate, Git, Maven
+
+Experience
+Associate Software Engineer, FinServe Systems (2024 - present)
+- Developed Spring Boot services and MySQL queries for a banking application.
+- Wrote JUnit tests and used Git for version control.
+
+Education
+B.E. in Electronics Engineering, VTU, 2024
