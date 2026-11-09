@@ -1,18 +1,25 @@
 """Blend the screening signals into one explainable match score (Module 6).
 
-    Match Score = 0.50 x Skill Match + 0.25 x Text Similarity + 0.25 x Experience Fit
+    Match Score = 0.40 x Skill Match            (dictionary + aliases)
+                + 0.15 x Text Similarity        (term-frequency cosine, ML baseline)
+                + 0.25 x Semantic Similarity    (deep learning: Sentence-BERT or BiLSTM)
+                + 0.20 x Experience Fit         (years stated vs job level)
 
 If a signal cannot be measured (for example the resume does not state years of
-experience), its weight is shared out over the other signals so the candidate is
-not penalised for missing information.
+experience, or no deep-learning model is installed), its weight is shared out
+over the other signals so the candidate is not penalised for missing information.
+
+When Claude scoring is switched on (see llm.py):
+    Final Score = 0.7 x Match Score + 0.3 x LLM Score
 """
 import math
 import re
 from collections import Counter
 
-from . import experience, skills
+from . import experience, llm, semantic, skills
 
-WEIGHTS = {"skill": 0.50, "text": 0.25, "experience": 0.25}
+WEIGHTS = {"skill": 0.40, "text": 0.15, "semantic": 0.25, "experience": 0.20}
+LLM_WEIGHT = 0.3
 
 STOP_WORDS = set("""
 a about above after again against all am an and any are as at be because been before being below
@@ -57,8 +64,28 @@ def blend(signals):
     return int(math.floor(score + 0.5)), weights
 
 
-def screen(resume_text, job, declared_skills=()):
-    """Score a resume against a job. Returns a dict with the score and its breakdown."""
+def _categories(resume_text, jtext):
+    """Job category predicted for the resume and for the job by the ML and DL classifiers."""
+    from .ml import classifier
+
+    out = {}
+    for key, predict in (("ml", classifier.predict_ml), ("dl", classifier.predict_dl)):
+        try:
+            resume, job = predict(resume_text), predict(jtext)
+        except Exception:
+            resume = job = None
+        if resume and job:
+            out[key] = {"model": resume["model"], "resume_category": resume["category"],
+                        "resume_confidence": resume["confidence"], "job_category": job["category"],
+                        "same_category": resume["category"] == job["category"]}
+    return out
+
+
+def screen(resume_text, job, declared_skills=(), use_models=True):
+    """Score a resume against a job. Returns a dict with the score and its breakdown.
+
+    use_models=False skips the trained ML/DL models and Claude (used by fast unit tests).
+    """
     required = [skills.canonical(s) for s in job.skill_list]
     detected = set(skills.extract_skills(resume_text))
     declared = {skills.canonical(s) for s in declared_skills}
@@ -68,16 +95,28 @@ def screen(resume_text, job, declared_skills=()):
     missing = [s for s in required if s not in matched]
     skill_pct = round(len(matched) / len(required) * 100, 1) if required else None
 
-    text_pct = round(cosine_similarity(resume_text, job_text(job)) * 100, 1)
+    jtext = job_text(job)
+    text_pct = round(cosine_similarity(resume_text, jtext) * 100, 1)
+
+    semantic_pct, semantic_info = semantic.similarity(resume_text, jtext) if use_models else (None, None)
 
     years = experience.years_of_experience(resume_text)
     exp_pct = experience.experience_fit(years, job.experience_level)
 
-    score, weights = blend({"skill": skill_pct, "text": text_pct, "experience": exp_pct})
+    score, weights = blend({"skill": skill_pct, "text": text_pct, "semantic": semantic_pct,
+                            "experience": exp_pct})
+    local_score = score
+    llm_result = llm.rate(resume_text, jtext) if use_models else None
+    if llm_result:
+        score = int(math.floor((1 - LLM_WEIGHT) * local_score + LLM_WEIGHT * llm_result["score"] + 0.5))
+
     return {
         "match_score": score,
+        "local_score": local_score,
         "skill_match_percent": skill_pct,
         "text_similarity_percent": text_pct,
+        "semantic_similarity_percent": semantic_pct,
+        "semantic_backend": semantic_info["backend"] if semantic_info else None,
         "experience_fit_percent": exp_pct,
         "candidate_years_of_experience": years,
         "education_level": experience.education_level(resume_text),
@@ -85,4 +124,7 @@ def screen(resume_text, job, declared_skills=()):
         "missing_skills": missing,
         "extracted_skills": sorted(candidate_skills | set(matched)),
         "weights_used": {k: round(v, 3) for k, v in weights.items()},
+        "predicted_categories": _categories(resume_text, jtext) if use_models else {},
+        "semantic_score": llm_result["score"] if llm_result else None,
+        "semantic_summary": llm_result["summary"] if llm_result else None,
     }

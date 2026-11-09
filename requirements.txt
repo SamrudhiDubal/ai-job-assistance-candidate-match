@@ -3,7 +3,7 @@ Django>=5.1,<5.2
 pypdf>=5.0
 python-docx>=1.1
 
-# Data analysis and ML (used by the AI engine and the analytics notebook)
+# Machine learning and data analysis
 pandas
 numpy
 matplotlib
@@ -11,3 +11,12 @@ seaborn
 scikit-learn
 joblib
 streamlit
+
+# Deep learning (BiLSTM resume classifier). Supports Python 3.10 to 3.13.
+tensorflow>=2.16
+
+# Optional Claude rating layer (only used when ANTHROPIC_API_KEY is set)
+anthropic>=2.0
+
+# Optional, recommended: Sentence-BERT semantic matching. Large download (PyTorch).
+#   pip install sentence-transformers

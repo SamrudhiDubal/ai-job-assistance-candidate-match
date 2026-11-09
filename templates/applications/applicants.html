@@ -26,9 +26,15 @@
     <div class="collapse mt-3" id="d{{ app.pk }}"><div class="row g-4">
       <div class="col-md-5">
         {% include "partials/signal.html" with label="Skill match" value=d.skill_match_percent %}
-        {% include "partials/signal.html" with label="Resume / description similarity" value=d.text_similarity_percent %}
+        {% include "partials/signal.html" with label="Word overlap with description (ML)" value=d.text_similarity_percent %}
+        {% if d.semantic_backend %}{% include "partials/signal.html" with label="Meaning similarity (DL, "|add:d.semantic_backend|add:")" value=d.semantic_similarity_percent %}{% endif %}
         {% include "partials/signal.html" with label="Experience fit" value=d.experience_fit_percent %}
         <div class="small text-muted mt-2">Years mentioned: {{ d.candidate_years_of_experience|default_if_none:"not stated" }} · Education: {{ d.education_level|default_if_none:"not detected" }}</div>
+        {% if d.semantic_score is not None %}<div class="small text-muted">Claude rating: {{ d.semantic_score }}% (blended 30%) · Local score: {{ d.local_score }}%</div>{% endif %}
+        {% for key, p in d.predicted_categories.items %}
+          <div class="small mt-1"><span class="badge text-bg-light border">{% if key == 'ml' %}ML{% else %}DL{% endif %}</span>
+            Resume looks like <strong>{{ p.resume_category }}</strong> ({{ p.resume_confidence }}%){% if p.same_category %} <span class="text-success">· same as this job</span>{% else %} <span class="text-muted">· job is {{ p.job_category }}</span>{% endif %}</div>
+        {% endfor %}
       </div>
       <div class="col-md-7">
         <div class="small fw-semibold">Matched skills</div>
