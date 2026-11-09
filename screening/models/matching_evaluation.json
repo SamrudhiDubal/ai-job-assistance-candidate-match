@@ -1,0 +1,28 @@
+{
+  "pool_size": 300,
+  "jobs": 12,
+  "semantic_backend": "BiLSTM role profile",
+  "seconds": 7.1,
+  "methods": {
+    "Skill match (rules)": {
+      "precision_at_10": 0.683,
+      "map": 0.558,
+      "ndcg_at_10": 0.712
+    },
+    "TF cosine (ML baseline)": {
+      "precision_at_10": 0.925,
+      "map": 0.814,
+      "ndcg_at_10": 0.941
+    },
+    "Semantic similarity (DL)": {
+      "precision_at_10": 0.975,
+      "map": 0.891,
+      "ndcg_at_10": 0.982
+    },
+    "Combined JobMatch score": {
+      "precision_at_10": 0.9,
+      "map": 0.85,
+      "ndcg_at_10": 0.905
+    }
+  }
+}

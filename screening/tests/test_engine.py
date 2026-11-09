@@ -71,18 +71,19 @@ class MatcherTests(SimpleTestCase):
         self.assertEqual(matcher.cosine_similarity("python", "photoshop"), 0.0)
         self.assertEqual(matcher.cosine_similarity("", "python"), 0.0)
 
-    def test_weights_redistributed_when_experience_unknown(self):
-        score, weights = matcher.blend({"skill": 90, "text": 30, "experience": None})
-        self.assertAlmostEqual(weights["skill"], 2 / 3)
-        self.assertAlmostEqual(weights["text"], 1 / 3)
-        self.assertEqual(score, 70)
+    def test_weights_redistributed_when_signals_missing(self):
+        score, weights = matcher.blend({"skill": 90, "text": 30, "semantic": None, "experience": None})
+        self.assertAlmostEqual(weights["skill"], 0.40 / 0.55)
+        self.assertAlmostEqual(weights["text"], 0.15 / 0.55)
+        self.assertEqual(score, 74)  # 65.45 + 8.18 = 73.6
 
     def test_full_blend(self):
-        score, _ = matcher.blend({"skill": 100, "text": 34, "experience": 100})
-        self.assertEqual(score, 84)  # 50 + 8.5 + 25 = 83.5, rounded half up
+        score, weights = matcher.blend({"skill": 100, "text": 34, "semantic": 60, "experience": 100})
+        self.assertAlmostEqual(sum(weights.values()), 1.0)
+        self.assertEqual(score, 80)  # 40 + 5.1 + 15 + 20 = 80.1
 
     def test_declared_skills_count(self):
-        result = matcher.screen("I build websites", MERN_JOB, declared_skills=["JS", "React"])
+        result = matcher.screen("I build websites", MERN_JOB, declared_skills=["JS", "React"], use_models=False)
         self.assertIn("javascript", result["matched_skills"])
         self.assertIn("react.js", result["matched_skills"])
 
