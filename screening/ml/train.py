@@ -13,7 +13,7 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import StratifiedKFold, cross_val_score, train_test_split
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
@@ -52,16 +52,25 @@ def _scores(y_true, y_pred, labels):
 
 
 def train_ml(X_train, X_test, y_train, y_test, labels, log=print):
+    """Pick the best classifier by 5-fold cross-validation on the training set only.
+
+    The held-out test set is used once, after selection, so the reported test scores
+    are an unbiased estimate for the chosen model.
+    """
     results, best = {}, None
+    folds = StratifiedKFold(n_splits=5, shuffle=True, random_state=SEED)
     for name, make in ML_CANDIDATES.items():
         start = time.time()
         pipe = Pipeline([("tfidf", _tfidf()), ("clf", make())])
+        cv_f1 = cross_val_score(pipe, X_train, y_train, cv=folds, scoring="f1_macro").mean()
         pipe.fit(X_train, y_train)
         scores = _scores(y_test, pipe.predict(X_test), labels)
+        scores["cv_macro_f1"] = round(float(cv_f1), 4)
         scores["train_seconds"] = round(time.time() - start, 2)
         results[name] = scores
-        log(f"  {name:25} accuracy={scores['accuracy']:.3f}  macro-F1={scores['macro_f1']:.3f}")
-        if best is None or scores["macro_f1"] > results[best[0]]["macro_f1"]:
+        log(f"  {name:25} cv-F1={cv_f1:.3f}  test accuracy={scores['accuracy']:.3f}  "
+            f"test macro-F1={scores['macro_f1']:.3f}")
+        if best is None or scores["cv_macro_f1"] > results[best[0]]["cv_macro_f1"]:
             best = (name, pipe)
     # Keep the best model; Linear SVM has no probabilities, so calibrate if it wins.
     name, pipe = best

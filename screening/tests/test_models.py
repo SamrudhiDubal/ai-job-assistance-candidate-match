@@ -1,6 +1,8 @@
 """Tests for the trained ML/DL models, semantic similarity and the optional Claude layer."""
+import importlib.util
 import json
 import os
+import unittest
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
@@ -12,6 +14,7 @@ from screening import llm, matcher, semantic
 from screening.ml import classifier, dataset, train
 
 RESUMES = Path(__file__).resolve().parents[2] / "sample_data" / "resumes"
+HAS_TF = importlib.util.find_spec("tensorflow") is not None
 
 
 class DatasetTests(SimpleTestCase):
@@ -36,10 +39,10 @@ class SavedModelTests(SimpleTestCase):
         self.assertEqual(p["category"], "Backend Developer")
         self.assertTrue(0 < p["confidence"] <= 100)
 
+    @unittest.skipUnless(HAS_TF, "TensorFlow not installed")
     def test_dl_classifier_predicts_categories(self):
         p = classifier.predict_dl((RESUMES / "sneha_iyer.txt").read_text())
-        if p is None:
-            self.skipTest("TensorFlow not installed")
+        self.assertIsNotNone(p, "TensorFlow is installed but the saved BiLSTM could not be loaded or run")
         self.assertEqual(p["category"], "UI/UX Designer")
 
 
@@ -60,12 +63,12 @@ class SemanticTests(SimpleTestCase):
         self.assertAlmostEqual(info["raw"], 0.6)
         self.assertAlmostEqual(pct, 81.8)
 
+    @unittest.skipUnless(HAS_TF, "TensorFlow not installed")
     def test_falls_back_to_bilstm(self):
         with mock.patch.object(semantic, "_sbert", return_value=None):
             pct, info = semantic.similarity((RESUMES / "arjun_sharma.txt").read_text(),
                                             "Full stack developer React Node.js Express MongoDB")
-        if info is None:
-            self.skipTest("TensorFlow not installed")
+        self.assertIsNotNone(info, "TensorFlow is installed but the BiLSTM fallback returned nothing")
         self.assertEqual(info["backend"], "BiLSTM role profile")
         self.assertTrue(0 <= pct <= 100)
 

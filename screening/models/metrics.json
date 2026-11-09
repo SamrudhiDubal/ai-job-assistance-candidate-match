@@ -277,7 +277,8 @@
           54
         ]
       ],
-      "train_seconds": 2.08
+      "cv_macro_f1": 0.8586,
+      "train_seconds": 9.81
     },
     "Linear SVM": {
       "accuracy": 0.8625,
@@ -539,7 +540,8 @@
           54
         ]
       ],
-      "train_seconds": 0.19
+      "cv_macro_f1": 0.8555,
+      "train_seconds": 0.97
     },
     "Multinomial Naive Bayes": {
       "accuracy": 0.8639,
@@ -801,7 +803,8 @@
           53
         ]
       ],
-      "train_seconds": 0.15
+      "cv_macro_f1": 0.8487,
+      "train_seconds": 0.72
     }
   },
   "best_ml_model": "Logistic Regression",
@@ -1123,5 +1126,6 @@
         ]
       }
     }
-  }
+  },
+  "model_selection": "5-fold cross-validated macro-F1 on the training set; test set used once for the reported scores"
 }
