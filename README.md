@@ -71,6 +71,16 @@ python manage.py evaluate_matching   # compares how well each signal ranks the r
 
 The combined score ranks slightly below the semantic signal alone in this benchmark because it also rewards experience fit, which the benchmark doesn't measure. Both results come from synthetic data, so they show the method works; real-world accuracy needs real resumes. Exact numbers can shift a little between machines.
 
+## Analytics notebooks
+
+The `analytics/` folder holds the data-science part of the project:
+
+* `recruitment_analytics.ipynb`: **Random Forest (ML) vs neural network (DL)** predicting candidate suitability on a 12,000-candidate dataset (accuracy 0.657 vs 0.698).
+* `hiring_funnel.ipynb`: anonymised funnel analysis of a real hiring tracker.
+* `dashboard.py`: a Streamlit dashboard of all results (`streamlit run analytics/dashboard.py`).
+
+See [analytics/README.md](analytics/README.md).
+
 ## Run it locally
 
 Needs Python 3.10 or later.
@@ -109,4 +119,5 @@ screening/       AI engine: parsers, skills, experience, matcher
 adminpanel/      administrator dashboard
 templates/       Bootstrap pages
 sample_data/     sample resumes used by the demo and the tests
+analytics/       dataset generator, notebooks, Streamlit dashboard, figures
 ```
