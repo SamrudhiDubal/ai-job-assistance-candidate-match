@@ -11,3 +11,5 @@ staticfiles/
 # Never commit real candidate data
 data/private/
 *.xlsx
+analytics/data/private/
+analytics/models/

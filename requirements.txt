@@ -10,7 +10,7 @@ matplotlib
 seaborn
 scikit-learn
 joblib
-streamlit
+streamlit>=1.50
 
 # Deep learning (BiLSTM resume classifier). Supports Python 3.10 to 3.13.
 tensorflow>=2.16
