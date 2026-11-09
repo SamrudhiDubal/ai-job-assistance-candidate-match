@@ -58,6 +58,10 @@ def evaluate(per_role=25, seed=7, log=print):
     start = time.time()
     jobs = [job_for(role, i) for i, role in enumerate(ROLE_PROFILES)]
     sem_matrix, backend = semantic.similarity_matrix(resumes, [matcher.job_text(j) for j in jobs])
+    if sem_matrix is None:
+        # No semantic backend: do not report a ranking that would only reflect input order.
+        log("  no semantic backend available; semantic ranking is skipped")
+        methods.pop("Semantic similarity (DL)")
     for i, role in enumerate(ROLE_PROFILES):
         job = jobs[i]
         jtext = matcher.job_text(job)
@@ -70,7 +74,7 @@ def evaluate(per_role=25, seed=7, log=print):
             sem = float(sem_matrix[r, i]) if sem_matrix is not None else None
             exp = experience.experience_fit(experience.years_of_experience(text), job.experience_level)
             combined, _ = matcher.blend({"skill": skill, "text": tf, "semantic": sem, "experience": exp})
-            rows.append((skill, tf, sem if sem is not None else 0, combined))
+            rows.append((skill, tf, sem, combined) if sem is not None else (skill, tf, combined))
         rows = np.array(rows)
         for col, name in enumerate(methods):
             order = np.argsort(-rows[:, col], kind="stable")
